@@ -23,9 +23,41 @@ namespace NMeCabTest
                 {
                     //空行以外を解析して取得
                     if (string.IsNullOrEmpty(line)) continue;
-                    sw.WriteLine(mecab.Parse(line));
+
+                    #region 130文字以上の行は分割して保存する
+                    //130文字以上の行は分割する
+                    var mecabLine = mecab.Parse(line);
+
+                    var list = new List<string>();
+                    if (mecabLine.Length > 130)
+                    {
+                        var ss = mecabLine.Split('|');
+                        var temp = "";
+                        foreach(var s in ss)
+                        {
+                            if (temp.Length > 130)
+                            {
+                                list.Add(temp);
+                                temp = "";
+                            }
+                            temp += s + "|";
+                        }
+                    }
+                    else
+                    {
+                        list.Add(mecabLine);
+                    }
+                    #endregion
+
+                    foreach(var text in list)
+                    {
+                        sw.WriteLine(text);
+                    }
                 }
             }
+
+            //処理が終了したら入力もとの方はクリアする
+            File.WriteAllText(ConfigurationManager.AppSettings["InFilePath"], "", Encoding.GetEncoding("shift_jis"));
         }
 
         //作業メモ
@@ -68,7 +100,6 @@ namespace NMeCabTest
 
             return res;
         }
-
     }
 
 }
